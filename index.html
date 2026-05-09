@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alarm</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .app {
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px 40px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+  }
+  .clock {
+    font-size: 36px;
+    font-weight: 300;
+    margin-bottom: 32px;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="time"] {
+    font-size: 48px;
+    font-weight: 200;
+    border: none;
+    background: transparent;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 32px;
+    color: #1d1d1f;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  input[type="time"]:focus { outline: none; }
+  button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    background: #007aff;
+    color: #fff;
+  }
+  button:hover { background: #0066d6; }
+  button.stop { background: #ff3b30; }
+  button.stop:hover { background: #d63329; }
+  .status {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #86868b;
+    min-height: 20px;
+  }
+  .status.active { color: #34c759; }
+  .status.ringing { color: #ff3b30; font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>Alarm</h1>
+    <div class="clock" id="clock">--:--:--</div>
+    <input type="time" id="alarmTime" value="07:00">
+    <button id="toggleBtn">Set Alarm</button>
+    <div class="status" id="status">No alarm set</div>
+  </div>
+
+<script>
+  const clockEl = document.getElementById('clock');
+  const alarmInput = document.getElementById('alarmTime');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const statusEl = document.getElementById('status');
+
+  let alarmActive = false;
+  let alarmTime = null;
+  let ringing = false;
+  let audioCtx = null;
+  let oscillator = null;
+  let gainNode = null;
+  let lastTriggered = null;
+
+  function pad(n) { return n.toString().padStart(2, '0'); }
+
+  function updateClock() {
+    const now = new Date();
+    clockEl.textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    checkAlarm(now);
+  }
+
+  function checkAlarm(now) {
+    if (!alarmActive || ringing || !alarmTime) return;
+    const current = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const triggerKey = `${now.toDateString()} ${current}`;
+    if (current === alarmTime && lastTriggered !== triggerKey) {
+      lastTriggered = triggerKey;
+      ringAlarm();
+    }
+  }
+
+  function ringAlarm() {
+    ringing = true;
+    statusEl.textContent = 'Ringing!';
+    statusEl.className = 'status ringing';
+    toggleBtn.textContent = 'Stop';
+    toggleBtn.className = 'stop';
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    oscillator = audioCtx.createOscillator();
+    gainNode = audioCtx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gainNode.gain.value = 0.2;
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.start();
+
+    let on = true;
+    const beepInterval = setInterval(() => {
+      if (!ringing) { clearInterval(beepInterval); return; }
+      gainNode.gain.value = on ? 0 : 0.2;
+      on = !on;
+    }, 500);
+  }
+
+  function stopAlarm() {
+    ringing = false;
+    if (oscillator) {
+      try { oscillator.stop(); } catch (e) {}
+      oscillator.disconnect();
+      oscillator = null;
+    }
+    if (audioCtx) {
+      audioCtx.close();
+      audioCtx = null;
+    }
+    deactivateAlarm();
+  }
+
+  function activateAlarm() {
+    alarmTime = alarmInput.value;
+    if (!alarmTime) return;
+    alarmActive = true;
+    alarmInput.disabled = true;
+    toggleBtn.textContent = 'Cancel';
+    toggleBtn.className = 'stop';
+    statusEl.textContent = `Alarm set for ${alarmTime}`;
+    statusEl.className = 'status active';
+  }
+
+  function deactivateAlarm() {
+    alarmActive = false;
+    alarmTime = null;
+    alarmInput.disabled = false;
+    toggleBtn.textContent = 'Set Alarm';
+    toggleBtn.className = '';
+    statusEl.textContent = 'No alarm set';
+    statusEl.className = 'status';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (ringing) {
+      stopAlarm();
+    } else if (alarmActive) {
+      deactivateAlarm();
+    } else {
+      activateAlarm();
+    }
+  });
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
