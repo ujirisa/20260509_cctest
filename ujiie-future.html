@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATSUNORI UJIIE // SYNTH ARCHITECT</title>
+<style>
+  :root {
+    --bg: #04050a;
+    --bg-2: #0a0f1f;
+    --neon-c: #00f0ff;
+    --neon-m: #ff2bd6;
+    --neon-y: #f5ff5b;
+    --neon-p: #8b5cff;
+    --text: #e8f0ff;
+    --muted: #7a8aa8;
+    --line: rgba(0, 240, 255, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: "Inter", "Helvetica Neue", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ====== Animated background grid + aurora ====== */
+  .bg {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 80% 10%, rgba(255, 43, 214, 0.18), transparent 70%),
+      radial-gradient(50% 40% at 10% 90%, rgba(0, 240, 255, 0.22), transparent 70%),
+      radial-gradient(40% 35% at 50% 50%, rgba(139, 92, 255, 0.15), transparent 70%),
+      linear-gradient(180deg, #04050a 0%, #060a18 60%, #04050a 100%);
+  }
+  .grid {
+    position: fixed; inset: -20% -10% -10% -10%; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 56px 56px, 56px 56px;
+    transform: perspective(700px) rotateX(62deg) translateY(8%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+    animation: gridmove 14s linear infinite;
+    opacity: 0.55;
+  }
+  @keyframes gridmove {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 0 56px, 56px 0; }
+  }
+  .scanlines {
+    position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.018) 0,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+
+  /* ====== NAV ====== */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 36px;
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: linear-gradient(180deg, rgba(4, 6, 14, 0.7), rgba(4, 6, 14, 0.2));
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    font-family: "JetBrains Mono", "Courier New", monospace;
+    font-size: 13px; letter-spacing: 3px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neon-c);
+    box-shadow: 0 0 14px var(--neon-c), 0 0 4px #fff;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .nav ul { list-style: none; display: flex; gap: 28px; font-size: 12px; letter-spacing: 2px; }
+  .nav a {
+    color: var(--muted); transition: color .2s, text-shadow .2s;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .nav a:hover { color: var(--neon-c); text-shadow: 0 0 12px var(--neon-c); }
+  .nav .cta {
+    padding: 8px 16px; border: 1px solid var(--neon-m);
+    color: var(--neon-m); border-radius: 2px;
+    font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 2px;
+    transition: all .2s;
+  }
+  .nav .cta:hover {
+    background: var(--neon-m); color: #04050a;
+    box-shadow: 0 0 24px var(--neon-m);
+  }
+
+  /* ====== HERO ====== */
+  .hero {
+    min-height: 100vh; position: relative;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 36px 80px;
+    max-width: 1280px; margin: 0 auto;
+  }
+  .hero .meta {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--neon-c); font-size: 12px; letter-spacing: 4px;
+    margin-bottom: 28px; opacity: 0;
+    animation: fadeUp .8s ease .2s forwards;
+  }
+  .hero h1 {
+    font-size: clamp(48px, 9vw, 140px);
+    font-weight: 800; line-height: 0.92; letter-spacing: -0.03em;
+    background: linear-gradient(180deg, #fff 0%, #fff 40%, var(--neon-c) 80%, var(--neon-m) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 60px rgba(0, 240, 255, 0.15);
+    opacity: 0;
+    animation: fadeUp 1s ease .4s forwards;
+  }
+  .hero h1 .accent {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--neon-m);
+    text-stroke: 1.5px var(--neon-m);
+    background: none;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero .tags {
+    margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp .8s ease .8s forwards;
+  }
+  .tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: 2px;
+    padding: 6px 12px; border: 1px solid var(--line);
+    color: var(--muted); border-radius: 2px;
+    background: rgba(0, 240, 255, 0.04);
+  }
+  .hero .lead {
+    margin-top: 40px; max-width: 620px; color: var(--muted);
+    font-size: 16px; line-height: 1.8;
+    opacity: 0; animation: fadeUp .8s ease 1s forwards;
+  }
+  .hero .hud {
+    position: absolute; right: 36px; bottom: 80px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 2px; color: var(--neon-c);
+    text-align: right; opacity: 0.7;
+  }
+  .hero .hud div { margin: 2px 0; }
+  .hero .hud .bar {
+    margin-top: 8px; height: 2px; width: 140px;
+    background: linear-gradient(90deg, var(--neon-c), transparent);
+    box-shadow: 0 0 10px var(--neon-c);
+  }
+
+  /* Sound visualizer */
+  .visualizer {
+    margin-top: 60px;
+    display: flex; align-items: flex-end; gap: 4px; height: 64px;
+    opacity: 0; animation: fadeUp .8s ease 1.2s forwards;
+  }
+  .visualizer span {
+    flex: 1; max-width: 6px;
+    background: linear-gradient(180deg, var(--neon-m), var(--neon-c));
+    border-radius: 1px;
+    animation: wave 1.3s ease-in-out infinite;
+  }
+  .visualizer span:nth-child(odd)  { animation-duration: 1.1s; }
+  .visualizer span:nth-child(3n)   { animation-duration: 1.6s; }
+  .visualizer span:nth-child(5n)   { animation-duration: 0.9s; }
+  @keyframes wave {
+    0%, 100% { height: 10%; }
+    50%      { height: 95%; }
+  }
+
+  /* ====== SECTION base ====== */
+  section.block {
+    position: relative;
+    padding: 120px 36px;
+    max-width: 1280px; margin: 0 auto;
+  }
+  .section-head {
+    display: flex; align-items: baseline; gap: 18px;
+    margin-bottom: 56px; border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+  }
+  .section-head .num {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--neon-c); font-size: 12px; letter-spacing: 3px;
+  }
+  .section-head h2 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700; letter-spacing: -0.02em;
+  }
+  .section-head .sub {
+    margin-left: auto; color: var(--muted);
+    font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 2px;
+  }
+
+  /* ====== BIO ====== */
+  .bio-grid {
+    display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px;
+  }
+  .bio-portrait {
+    aspect-ratio: 3/4; position: relative;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(135deg, rgba(0, 240, 255, 0.08), transparent 60%),
+      linear-gradient(315deg, rgba(255, 43, 214, 0.10), transparent 60%),
+      #07091a;
+    overflow: hidden;
+  }
+  .bio-portrait::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(50% 40% at 50% 35%, rgba(0, 240, 255, 0.25), transparent 70%),
+      radial-gradient(50% 50% at 50% 80%, rgba(255, 43, 214, 0.15), transparent 70%);
+  }
+  .bio-portrait::after {
+    content: "K.U."; position: absolute;
+    inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: clamp(80px, 14vw, 180px); font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1.2px var(--neon-c);
+    text-stroke: 1.2px var(--neon-c);
+    letter-spacing: -0.05em;
+    text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+  }
+  .bio-portrait .corner {
+    position: absolute; width: 24px; height: 24px;
+    border: 1.5px solid var(--neon-c);
+  }
+  .bio-portrait .c-tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+  .bio-portrait .c-tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+  .bio-portrait .c-bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+  .bio-portrait .c-br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+  .bio-portrait .stamp {
+    position: absolute; bottom: 18px; right: 18px;
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    color: var(--neon-c); letter-spacing: 2px;
+    background: rgba(0,0,0,0.4); padding: 4px 8px;
+  }
+  .bio-text p { color: var(--muted); margin-bottom: 20px; font-size: 15px; }
+  .bio-text strong { color: var(--text); }
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-top: 32px;
+  }
+  .stat {
+    padding: 20px; border: 1px solid var(--line);
+    background: rgba(0, 240, 255, 0.03);
+  }
+  .stat .num {
+    font-size: 32px; font-weight: 800;
+    background: linear-gradient(135deg, var(--neon-c), var(--neon-m));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .stat .label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-top: 4px;
+  }
+
+  /* ====== CARDS / WORKS / LESSON / BOOK ====== */
+  .cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .card {
+    position: relative;
+    padding: 28px;
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(10, 15, 31, 0.6), rgba(4, 6, 14, 0.4));
+    backdrop-filter: blur(8px);
+    transition: transform .3s, border-color .3s, box-shadow .3s;
+    overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-c), transparent);
+    transform: translateX(-100%); transition: transform .6s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 240, 255, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 240, 255, 0.12);
+  }
+  .card:hover::before { transform: translateX(100%); }
+  .card .ico {
+    width: 44px; height: 44px; margin-bottom: 18px;
+    border: 1px solid var(--neon-c); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--neon-c); font-family: "JetBrains Mono", monospace;
+    box-shadow: inset 0 0 12px rgba(0, 240, 255, 0.18);
+  }
+  .card h3 { font-size: 20px; margin-bottom: 10px; letter-spacing: -0.01em; }
+  .card p { color: var(--muted); font-size: 14px; }
+  .card .price {
+    margin-top: 18px; font-family: "JetBrains Mono", monospace;
+    color: var(--neon-m); font-size: 13px; letter-spacing: 2px;
+  }
+
+  /* WORKS / Album feature */
+  .feature {
+    display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center;
+  }
+  .album-art {
+    aspect-ratio: 1/1; position: relative;
+    border: 1px solid var(--line);
+    background:
+      conic-gradient(from 220deg at 50% 50%, var(--neon-p), var(--neon-m), var(--neon-c), var(--neon-p));
+    overflow: hidden;
+  }
+  .album-art::before {
+    content: ""; position: absolute; inset: 8%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #04050a 70%);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+  }
+  .album-art::after {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 0,
+      transparent 6px,
+      rgba(0, 0, 0, 0.25) 6px,
+      rgba(0, 0, 0, 0.25) 7px
+    );
+    mix-blend-mode: overlay;
+    animation: spin 20s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .album-art .center {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    color: var(--neon-c); letter-spacing: 3px; z-index: 2;
+    text-shadow: 0 0 8px var(--neon-c);
+  }
+  .feature h3 {
+    font-size: clamp(28px, 3.6vw, 44px); margin-bottom: 16px; letter-spacing: -0.02em;
+  }
+  .feature h3 span {
+    background: linear-gradient(135deg, var(--neon-c), var(--neon-m));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .feature p { color: var(--muted); margin-bottom: 24px; }
+  .genres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .genres .g {
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    padding: 5px 10px; border: 1px solid var(--neon-p);
+    color: var(--neon-p); letter-spacing: 2px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px; border: 1px solid var(--neon-c);
+    color: var(--neon-c); font-family: "JetBrains Mono", monospace;
+    font-size: 12px; letter-spacing: 2px;
+    transition: all .2s;
+  }
+  .btn::after { content: "→"; }
+  .btn:hover {
+    background: var(--neon-c); color: #04050a;
+    box-shadow: 0 0 30px var(--neon-c);
+  }
+
+  /* YOUTUBE strip */
+  .yt-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .yt {
+    aspect-ratio: 16/9; position: relative; overflow: hidden;
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, #0c1230, #1a0a2e);
+    cursor: pointer; transition: transform .3s;
+  }
+  .yt:nth-child(2) { background: linear-gradient(135deg, #1a0a2e, #2e0a1a); }
+  .yt:nth-child(3) { background: linear-gradient(135deg, #0a2e2a, #0c1230); }
+  .yt:nth-child(4) { background: linear-gradient(135deg, #2e1a0a, #1a0a2e); }
+  .yt:hover { transform: scale(1.03); }
+  .yt::before {
+    content: "▶"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: var(--neon-c);
+    text-shadow: 0 0 20px var(--neon-c);
+  }
+  .yt .label {
+    position: absolute; bottom: 8px; left: 10px;
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    color: var(--text); letter-spacing: 2px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+
+  /* ====== CTA / Footer ====== */
+  .cta-block {
+    margin: 120px 36px 0; max-width: 1280px;
+    padding: 80px 40px; text-align: center;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(60% 80% at 50% 0%, rgba(255, 43, 214, 0.18), transparent 70%),
+      radial-gradient(60% 80% at 50% 100%, rgba(0, 240, 255, 0.18), transparent 70%),
+      rgba(7, 9, 26, 0.6);
+    position: relative; overflow: hidden;
+  }
+  .cta-block::before, .cta-block::after {
+    content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-c), transparent);
+  }
+  .cta-block::before { top: 0; }
+  .cta-block::after { bottom: 0; }
+  .cta-block h2 {
+    font-size: clamp(32px, 5vw, 56px); margin-bottom: 16px; letter-spacing: -0.02em;
+  }
+  .cta-block p { color: var(--muted); margin-bottom: 28px; }
+  .cta-block .btn-big {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 18px 36px;
+    background: linear-gradient(135deg, var(--neon-c), var(--neon-m));
+    color: #04050a; font-weight: 700;
+    font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 3px;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .cta-block .btn-big:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 240, 255, 0.4);
+  }
+
+  footer {
+    margin-top: 80px; padding: 40px 36px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between;
+    max-width: 1280px; margin-left: auto; margin-right: auto;
+    color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 2px;
+  }
+  footer .socials { display: flex; gap: 18px; }
+  footer .socials a { color: var(--muted); transition: color .2s; }
+  footer .socials a:hover { color: var(--neon-c); text-shadow: 0 0 10px var(--neon-c); }
+
+  /* ====== Responsive ====== */
+  @media (max-width: 900px) {
+    .nav ul { display: none; }
+    .nav { padding: 16px 20px; }
+    .hero, section.block { padding-left: 20px; padding-right: 20px; }
+    .hero .hud { display: none; }
+    .bio-grid, .feature { grid-template-columns: 1fr; gap: 40px; }
+    .cards { grid-template-columns: 1fr; }
+    .yt-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="scanlines"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="brand">
+    <span class="dot"></span>
+    <span>K.UJIIE / SYS_v2050</span>
+  </div>
+  <ul>
+    <li><a href="#bio">BIO</a></li>
+    <li><a href="#works">WORKS</a></li>
+    <li><a href="#lesson">LESSON</a></li>
+    <li><a href="#book">BOOK</a></li>
+    <li><a href="#youtube">YOUTUBE</a></li>
+  </ul>
+  <a href="#contact" class="cta">CONNECT</a>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="meta">// PRODUCER · COMPOSER · SYNTHESIST · ASAHIKAWA, HOKKAIDO</div>
+  <h1>
+    KATSUNORI<br>
+    <span class="accent">UJIIE</span>
+  </h1>
+  <div class="tags">
+    <span class="tag">SYNTHESIZER</span>
+    <span class="tag">DTM / DAW</span>
+    <span class="tag">ARRANGER</span>
+    <span class="tag">KEYBOARDIST</span>
+    <span class="tag">CREATIVE DIRECTOR</span>
+  </div>
+  <p class="lead">
+    プロデューサー / 作編曲家 / キーボーディスト / シンセサイザープログラマー。
+    R&B、Rock & Pop、Funk、Smooth Jazz、EDM、Ambient——
+    ジャンルの境界を越え、音と空間をデザインする。北海道・旭川を拠点に、
+    マンツーマン指導と作品制作を続ける音の建築家。
+  </p>
+
+  <div class="visualizer" aria-hidden="true">
+    <!-- 32 bars -->
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="hud">
+    <div>LAT 43.7706 N</div>
+    <div>LON 142.3650 E</div>
+    <div>SIG ▮▮▮▮▮▮▮▯</div>
+    <div class="bar"></div>
+  </div>
+</header>
+
+<!-- ============ BIO ============ -->
+<section id="bio" class="block">
+  <div class="section-head">
+    <span class="num">01 //</span>
+    <h2>BIO</h2>
+    <span class="sub">PROFILE.SYS</span>
+  </div>
+  <div class="bio-grid">
+    <div class="bio-portrait">
+      <span class="corner c-tl"></span>
+      <span class="corner c-tr"></span>
+      <span class="corner c-bl"></span>
+      <span class="corner c-br"></span>
+      <div class="stamp">ID: KU-1965</div>
+    </div>
+    <div class="bio-text">
+      <p>
+        <strong>氏家 克典 / Katsunori Ujiie</strong> ——
+        日本を代表するシンセサイザー奏者の一人として、長年にわたり最前線で活動を続ける
+        プロデューサー / 作編曲家。
+      </p>
+      <p>
+        国内外の著名アーティストへの楽曲提供・編曲・サウンドプログラミングを手がける一方、
+        雑誌連載、書籍執筆、教則動画など、教育分野でも幅広く発信。
+        現在は北海道・旭川を拠点に、独自のマンツーマン・レッスンを展開している。
+      </p>
+      <p>
+        <strong>表現の幅は実に多彩</strong>——R&B、Rock & Pop、Funk、
+        Smooth Jazz、Electronic Dance Music、Ambient まで、ジャンルを横断した
+        音楽制作で知られる。
+      </p>
+      <div class="stats">
+        <div class="stat">
+          <div class="num">40+</div>
+          <div class="label">YEARS IN MUSIC</div>
+        </div>
+        <div class="stat">
+          <div class="num">∞</div>
+          <div class="label">SYNTH PATCHES</div>
+        </div>
+        <div class="stat">
+          <div class="num">1:1</div>
+          <div class="label">LESSON MODE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORKS / ALBUM ============ -->
+<section id="works" class="block">
+  <div class="section-head">
+    <span class="num">02 //</span>
+    <h2>WORKS</h2>
+    <span class="sub">DISCOGRAPHY.DAT</span>
+  </div>
+  <div class="feature">
+    <div class="album-art">
+      <div class="center">/// MUSIC_COLLAGE.WAV ///</div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; color:var(--neon-c); font-size:12px; letter-spacing:3px; margin-bottom:14px;">1ST ALBUM // USB EDITION</div>
+      <h3>MUSIC <span>COLLAGE</span></h3>
+      <p>
+        ジャンルの壁を解き放った、氏家克典のファースト・アルバム。
+        R&B、Rock & Pop、Funk、Smooth Jazz、EDM、Ambient——
+        多様な音楽体験を、ひとつのコラージュとして織り上げた作品集。
+        高音質 USB メモリーで届ける、フィジカルなリスニング体験。
+      </p>
+      <div class="genres">
+        <span class="g">R&B</span>
+        <span class="g">ROCK &amp; POP</span>
+        <span class="g">FUNK</span>
+        <span class="g">SMOOTH JAZZ</span>
+        <span class="g">EDM</span>
+        <span class="g">AMBIENT</span>
+      </div>
+      <a href="#" class="btn">EXPLORE THE ALBUM</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LESSON ============ -->
+<section id="lesson" class="block">
+  <div class="section-head">
+    <span class="num">03 //</span>
+    <h2>LESSON</h2>
+    <span class="sub">1ON1.PROTOCOL</span>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="ico">01</div>
+      <h3>SYNTH MASTERY</h3>
+      <p>
+        シンセサイザーの基礎から音作りの応用まで。アナログ・モデリング・ソフトシンセ
+        まで横断的に学べる、マンツーマン形式の個別最適化レッスン。
+      </p>
+      <div class="price">¥11,000 / 60 MIN</div>
+    </div>
+    <div class="card">
+      <div class="ico">02</div>
+      <h3>DTM / DAW</h3>
+      <p>
+        制作環境の構築から、ミックス、アレンジワークまで。プロの現場のワークフローを、
+        メールチュータリングと組み合わせて学ぶサブスクリプション・コース。
+      </p>
+      <div class="price">SUBSCRIPTION</div>
+    </div>
+    <div class="card">
+      <div class="ico">03</div>
+      <h3>KEYBOARD ARTS</h3>
+      <p>
+        ピアニストでなくても "リアルな鍵盤演奏" をプログラミングする手法を伝授。
+        打ち込みの常識を書き換える、独自メソッド。
+      </p>
+      <div class="price">CUSTOM PROGRAM</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOOK ============ -->
+<section id="book" class="block">
+  <div class="section-head">
+    <span class="num">04 //</span>
+    <h2>BOOK</h2>
+    <span class="sub">PUBLICATION.LOG</span>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="ico">📘</div>
+      <h3>KEYBOARD PROGRAMMING</h3>
+      <p>
+        ピアノが弾けなくても、説得力のあるキーボード演奏を打ち込みで実現する方法。
+        現場で培われたテクニックを体系化した教則本。
+      </p>
+      <div class="price">AVAILABLE NOW</div>
+    </div>
+    <div class="card">
+      <div class="ico">📗</div>
+      <h3>SYNTH SOUND DESIGN</h3>
+      <p>
+        音の設計図——シンセサイザーの中で何が起きているのかを、
+        理論と実践の両面から解き明かす。
+      </p>
+      <div class="price">REFERENCE GUIDE</div>
+    </div>
+    <div class="card">
+      <div class="ico">📕</div>
+      <h3>ARRANGE WORKBOOK</h3>
+      <p>
+        ジャンル横断のアレンジ術。Funk から Ambient まで、
+        ひとつのモチーフを多彩に展開する思考のレシピ集。
+      </p>
+      <div class="price">FORTHCOMING</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ YOUTUBE ============ -->
+<section id="youtube" class="block">
+  <div class="section-head">
+    <span class="num">05 //</span>
+    <h2>YOUTUBE</h2>
+    <span class="sub">STREAM.CHANNEL</span>
+  </div>
+  <div class="yt-grid">
+    <div class="yt"><div class="label">SYNTH DEMO #001</div></div>
+    <div class="yt"><div class="label">DTM TUTORIAL</div></div>
+    <div class="yt"><div class="label">LIVE PERFORMANCE</div></div>
+    <div class="yt"><div class="label">SOUND DESIGN</div></div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section id="contact" class="cta-block">
+  <h2>SHAPE THE NEXT SOUND.</h2>
+  <p>レッスン、楽曲制作、プログラミング、執筆——音にまつわるあらゆる依頼を承ります。</p>
+  <a href="#" class="btn-big">INITIATE CONTACT →</a>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div>© 2050 KATSUNORI UJIIE // ALL SIGNALS RESERVED</div>
+  <div class="socials">
+    <a href="#">X</a>
+    <a href="#">FACEBOOK</a>
+    <a href="#">INSTAGRAM</a>
+    <a href="#">NOTE</a>
+    <a href="#">YOUTUBE</a>
+  </div>
+</footer>
+
+<script>
+  // Smooth scroll for in-page nav
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) {
+        const t = document.querySelector(id);
+        if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      }
+    });
+  });
+
+  // Subtle parallax on grid
+  const grid = document.querySelector('.grid');
+  window.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 12;
+    const y = (e.clientY / window.innerHeight - 0.5) * 6;
+    grid.style.transform = `perspective(700px) rotateX(${62 + y}deg) translate(${x}px, 8%)`;
+  });
+</script>
+</body>
+</html>
