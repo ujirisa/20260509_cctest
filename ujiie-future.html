@@ -308,6 +308,35 @@
     color: var(--neon-m); font-size: 13px; letter-spacing: 2px;
   }
 
+  /* ====== BOOK card variant ====== */
+  a.card { display: block; }
+  .card.book .book-cover {
+    aspect-ratio: 3/4;
+    margin: -28px -28px 20px;
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0a0f25, #1a0a2e);
+    border-bottom: 1px solid var(--line);
+  }
+  .card.book .book-cover .fallback {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; opacity: 0.6;
+  }
+  .card.book .book-cover img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain;
+    background: #060a18;
+    z-index: 2;
+  }
+  .card.book .book-cover::after {
+    content: ""; position: absolute; inset: 0; z-index: 3;
+    background:
+      linear-gradient(180deg, transparent 60%, rgba(0, 240, 255, 0.08) 100%),
+      linear-gradient(135deg, rgba(255, 43, 214, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .card.book h3 { font-size: 18px; }
+
   /* WORKS / Album feature */
   .feature {
     display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center;
@@ -390,23 +419,37 @@
     aspect-ratio: 16/9; position: relative; overflow: hidden;
     border: 1px solid var(--line);
     background: linear-gradient(135deg, #0c1230, #1a0a2e);
-    cursor: pointer; transition: transform .3s;
+    cursor: pointer; transition: transform .3s, box-shadow .3s;
+    display: block;
   }
   .yt:nth-child(2) { background: linear-gradient(135deg, #1a0a2e, #2e0a1a); }
   .yt:nth-child(3) { background: linear-gradient(135deg, #0a2e2a, #0c1230); }
   .yt:nth-child(4) { background: linear-gradient(135deg, #2e1a0a, #1a0a2e); }
-  .yt:hover { transform: scale(1.03); }
-  .yt::before {
-    content: "▶"; position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; color: var(--neon-c);
-    text-shadow: 0 0 20px var(--neon-c);
+  .yt:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0, 240, 255, 0.25); }
+  .yt img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 1;
   }
+  .yt::after {
+    content: ""; position: absolute; inset: 0; z-index: 2;
+    background:
+      linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.55) 100%),
+      radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .yt::before {
+    content: "▶"; position: absolute; inset: 0; z-index: 3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; color: var(--neon-c);
+    text-shadow: 0 0 20px var(--neon-c), 0 0 4px #000;
+    transition: transform .3s;
+  }
+  .yt:hover::before { transform: scale(1.15); }
   .yt .label {
-    position: absolute; bottom: 8px; left: 10px;
+    position: absolute; bottom: 8px; left: 10px; z-index: 4;
     font-family: "JetBrains Mono", monospace; font-size: 10px;
     color: var(--text); letter-spacing: 2px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.95);
   }
 
   /* ====== CTA / Footer ====== */
@@ -585,16 +628,16 @@
   </div>
   <div class="feature">
     <div class="album-stack">
-      <div class="album-art secondary">
+      <a class="album-art secondary" href="https://ujiie.thebase.in/" target="_blank" rel="noopener" aria-label="MUSIC COLLAGE を購入する">
         <span class="glow"></span>
-        <span class="label-tape alt">VOL.02</span>
+        <span class="label-tape alt">VOL.01</span>
         <img src="images/music-collage.jpg" alt="MUSIC COLLAGE" onerror="this.style.display='none'">
-      </div>
-      <div class="album-art primary">
+      </a>
+      <a class="album-art primary" href="https://ujiie.thebase.in/" target="_blank" rel="noopener" aria-label="MUSIC COLLAGE II を購入する">
         <span class="glow"></span>
-        <span class="label-tape">VOL.01 / LATEST</span>
+        <span class="label-tape">VOL.02 / LATEST</span>
         <img src="images/music-collage-2.jpg" alt="MUSIC COLLAGE II - Love &amp; Universe" onerror="this.style.display='none'">
-      </div>
+      </a>
     </div>
     <div>
       <div style="font-family:'JetBrains Mono',monospace; color:var(--neon-c); font-size:12px; letter-spacing:3px; margin-bottom:14px;">ALBUM SERIES // USB EDITION</div>
@@ -617,7 +660,7 @@
         <span class="g">EDM</span>
         <span class="g">AMBIENT</span>
       </div>
-      <a href="#" class="btn">EXPLORE THE ALBUMS</a>
+      <a href="https://ujiie.thebase.in/" target="_blank" rel="noopener" class="btn">VISIT MUSIC SHOP</a>
     </div>
   </div>
 </section>
@@ -668,33 +711,42 @@
     <span class="sub">PUBLICATION.LOG</span>
   </div>
   <div class="cards">
-    <div class="card">
-      <div class="ico">📘</div>
+    <a class="card book" href="#" target="_blank" rel="noopener">
+      <div class="book-cover">
+        <div class="fallback">📘</div>
+        <img src="images/book1.jpg" alt="Book 1" onerror="this.style.display='none'">
+      </div>
       <h3>KEYBOARD PROGRAMMING</h3>
       <p>
         ピアノが弾けなくても、説得力のあるキーボード演奏を打ち込みで実現する方法。
         現場で培われたテクニックを体系化した教則本。
       </p>
-      <div class="price">AVAILABLE NOW</div>
-    </div>
-    <div class="card">
-      <div class="ico">📗</div>
+      <div class="price">AVAILABLE NOW →</div>
+    </a>
+    <a class="card book" href="#" target="_blank" rel="noopener">
+      <div class="book-cover">
+        <div class="fallback">📗</div>
+        <img src="images/book2.jpg" alt="Book 2" onerror="this.style.display='none'">
+      </div>
       <h3>SYNTH SOUND DESIGN</h3>
       <p>
         音の設計図——シンセサイザーの中で何が起きているのかを、
         理論と実践の両面から解き明かす。
       </p>
-      <div class="price">REFERENCE GUIDE</div>
-    </div>
-    <div class="card">
-      <div class="ico">📕</div>
+      <div class="price">REFERENCE GUIDE →</div>
+    </a>
+    <a class="card book" href="#" target="_blank" rel="noopener">
+      <div class="book-cover">
+        <div class="fallback">📕</div>
+        <img src="images/book3.jpg" alt="Book 3" onerror="this.style.display='none'">
+      </div>
       <h3>ARRANGE WORKBOOK</h3>
       <p>
         ジャンル横断のアレンジ術。Funk から Ambient まで、
         ひとつのモチーフを多彩に展開する思考のレシピ集。
       </p>
-      <div class="price">FORTHCOMING</div>
-    </div>
+      <div class="price">FORTHCOMING →</div>
+    </a>
   </div>
 </section>
 
@@ -706,10 +758,22 @@
     <span class="sub">STREAM.CHANNEL</span>
   </div>
   <div class="yt-grid">
-    <div class="yt"><div class="label">SYNTH DEMO #001</div></div>
-    <div class="yt"><div class="label">DTM TUTORIAL</div></div>
-    <div class="yt"><div class="label">LIVE PERFORMANCE</div></div>
-    <div class="yt"><div class="label">SOUND DESIGN</div></div>
+    <a class="yt" href="https://www.youtube.com/watch?v=VIDEO_ID_1" target="_blank" rel="noopener">
+      <img src="https://img.youtube.com/vi/VIDEO_ID_1/hqdefault.jpg" alt="" onerror="this.style.display='none'">
+      <div class="label">SYNTH DEMO #001</div>
+    </a>
+    <a class="yt" href="https://www.youtube.com/watch?v=VIDEO_ID_2" target="_blank" rel="noopener">
+      <img src="https://img.youtube.com/vi/VIDEO_ID_2/hqdefault.jpg" alt="" onerror="this.style.display='none'">
+      <div class="label">DTM TUTORIAL</div>
+    </a>
+    <a class="yt" href="https://www.youtube.com/watch?v=VIDEO_ID_3" target="_blank" rel="noopener">
+      <img src="https://img.youtube.com/vi/VIDEO_ID_3/hqdefault.jpg" alt="" onerror="this.style.display='none'">
+      <div class="label">LIVE PERFORMANCE</div>
+    </a>
+    <a class="yt" href="https://www.youtube.com/watch?v=VIDEO_ID_4" target="_blank" rel="noopener">
+      <img src="https://img.youtube.com/vi/VIDEO_ID_4/hqdefault.jpg" alt="" onerror="this.style.display='none'">
+      <div class="label">SOUND DESIGN</div>
+    </a>
   </div>
 </section>
 
