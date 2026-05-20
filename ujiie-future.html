@@ -221,35 +221,34 @@
       #07091a;
     overflow: hidden;
   }
-  .bio-portrait::before {
-    content: ""; position: absolute; inset: 0;
-    background:
-      radial-gradient(50% 40% at 50% 35%, rgba(0, 240, 255, 0.25), transparent 70%),
-      radial-gradient(50% 50% at 50% 80%, rgba(255, 43, 214, 0.15), transparent 70%);
+  .bio-portrait img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    filter: contrast(1.05) saturate(0.95) brightness(0.95);
+    mix-blend-mode: luminosity;
   }
-  .bio-portrait::after {
-    content: "K.U."; position: absolute;
-    inset: 0; display: flex; align-items: center; justify-content: center;
-    font-size: clamp(80px, 14vw, 180px); font-weight: 900;
-    color: transparent;
-    -webkit-text-stroke: 1.2px var(--neon-c);
-    text-stroke: 1.2px var(--neon-c);
-    letter-spacing: -0.05em;
-    text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+  .bio-portrait::before {
+    content: ""; position: absolute; inset: 0; z-index: 2;
+    background:
+      radial-gradient(60% 50% at 50% 30%, transparent 0%, rgba(4, 5, 10, 0.25) 80%),
+      linear-gradient(180deg, transparent 50%, rgba(255, 43, 214, 0.18) 100%),
+      linear-gradient(0deg, transparent 50%, rgba(0, 240, 255, 0.12) 100%);
+    pointer-events: none;
   }
   .bio-portrait .corner {
     position: absolute; width: 24px; height: 24px;
-    border: 1.5px solid var(--neon-c);
+    border: 1.5px solid var(--neon-c); z-index: 3;
   }
   .bio-portrait .c-tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
   .bio-portrait .c-tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
   .bio-portrait .c-bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
   .bio-portrait .c-br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
   .bio-portrait .stamp {
-    position: absolute; bottom: 18px; right: 18px;
+    position: absolute; bottom: 18px; right: 18px; z-index: 3;
     font-family: "JetBrains Mono", monospace; font-size: 10px;
     color: var(--neon-c); letter-spacing: 2px;
-    background: rgba(0,0,0,0.4); padding: 4px 8px;
+    background: rgba(0,0,0,0.5); padding: 4px 8px;
+    backdrop-filter: blur(4px);
   }
   .bio-text p { color: var(--muted); margin-bottom: 20px; font-size: 15px; }
   .bio-text strong { color: var(--text); }
@@ -313,37 +312,48 @@
   .feature {
     display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center;
   }
+  .album-stack {
+    position: relative; aspect-ratio: 1/1;
+  }
   .album-art {
     aspect-ratio: 1/1; position: relative;
     border: 1px solid var(--line);
     background:
       conic-gradient(from 220deg at 50% 50%, var(--neon-p), var(--neon-m), var(--neon-c), var(--neon-p));
     overflow: hidden;
+    transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .4s;
   }
-  .album-art::before {
-    content: ""; position: absolute; inset: 8%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff, #04050a 70%);
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+  .album-art img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 2;
   }
-  .album-art::after {
-    content: ""; position: absolute; inset: 0;
-    background: repeating-radial-gradient(
-      circle at 50% 50%,
-      transparent 0,
-      transparent 6px,
-      rgba(0, 0, 0, 0.25) 6px,
-      rgba(0, 0, 0, 0.25) 7px
-    );
-    mix-blend-mode: overlay;
-    animation: spin 20s linear infinite;
+  .album-art .glow {
+    position: absolute; inset: -2px; z-index: 0;
+    background: linear-gradient(135deg, var(--neon-c), var(--neon-m));
+    filter: blur(20px); opacity: 0.4;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .album-art .center {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  .album-stack .album-art.primary {
+    position: relative; z-index: 3;
+    box-shadow: 0 20px 60px rgba(0, 240, 255, 0.25), 0 0 0 1px var(--line);
+  }
+  .album-stack .album-art.secondary {
+    position: absolute; top: 8%; left: 8%; right: -8%; bottom: -8%;
+    z-index: 2; transform: rotate(6deg);
+    box-shadow: 0 12px 40px rgba(255, 43, 214, 0.22);
+    opacity: 0.92;
+  }
+  .album-stack:hover .album-art.primary  { transform: rotate(-3deg) translate(-3%, -3%); }
+  .album-stack:hover .album-art.secondary { transform: rotate(9deg)  translate(3%, 3%); }
+  .album-art .label-tape {
+    position: absolute; top: 14px; left: -8px; z-index: 4;
+    background: var(--neon-c); color: #04050a;
     font-family: "JetBrains Mono", monospace; font-size: 10px;
-    color: var(--neon-c); letter-spacing: 3px; z-index: 2;
-    text-shadow: 0 0 8px var(--neon-c);
+    letter-spacing: 2px; padding: 4px 12px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 240, 255, 0.5);
+  }
+  .album-art .label-tape.alt {
+    background: var(--neon-m); color: #04050a;
+    box-shadow: 0 2px 8px rgba(255, 43, 214, 0.5);
   }
   .feature h3 {
     font-size: clamp(28px, 3.6vw, 44px); margin-bottom: 16px; letter-spacing: -0.02em;
@@ -525,11 +535,12 @@
   </div>
   <div class="bio-grid">
     <div class="bio-portrait">
+      <img src="images/portrait.jpg" alt="Katsunori Ujiie" onerror="this.style.display='none'">
       <span class="corner c-tl"></span>
       <span class="corner c-tr"></span>
       <span class="corner c-bl"></span>
       <span class="corner c-br"></span>
-      <div class="stamp">ID: KU-1965</div>
+      <div class="stamp">ID: KU // ASAHIKAWA</div>
     </div>
     <div class="bio-text">
       <p>
@@ -573,27 +584,40 @@
     <span class="sub">DISCOGRAPHY.DAT</span>
   </div>
   <div class="feature">
-    <div class="album-art">
-      <div class="center">/// MUSIC_COLLAGE.WAV ///</div>
+    <div class="album-stack">
+      <div class="album-art secondary">
+        <span class="glow"></span>
+        <span class="label-tape alt">VOL.02</span>
+        <img src="images/music-collage.jpg" alt="MUSIC COLLAGE" onerror="this.style.display='none'">
+      </div>
+      <div class="album-art primary">
+        <span class="glow"></span>
+        <span class="label-tape">VOL.01 / LATEST</span>
+        <img src="images/music-collage-2.jpg" alt="MUSIC COLLAGE II - Love &amp; Universe" onerror="this.style.display='none'">
+      </div>
     </div>
     <div>
-      <div style="font-family:'JetBrains Mono',monospace; color:var(--neon-c); font-size:12px; letter-spacing:3px; margin-bottom:14px;">1ST ALBUM // USB EDITION</div>
+      <div style="font-family:'JetBrains Mono',monospace; color:var(--neon-c); font-size:12px; letter-spacing:3px; margin-bottom:14px;">ALBUM SERIES // USB EDITION</div>
       <h3>MUSIC <span>COLLAGE</span></h3>
+      <p style="margin-bottom:14px;">
+        ジャンルの壁を解き放った、氏家克典のオリジナル・アルバム・シリーズ。
+        最新作 <strong style="color:var(--text);">『MUSIC COLLAGE II - Love &amp; Universe』</strong> は、
+        宇宙と生命の物語をモチーフに、前作からさらに広がった音と絵のコラージュ。
+      </p>
       <p>
-        ジャンルの壁を解き放った、氏家克典のファースト・アルバム。
-        R&B、Rock & Pop、Funk、Smooth Jazz、EDM、Ambient——
-        多様な音楽体験を、ひとつのコラージュとして織り上げた作品集。
+        R&amp;B、Rock &amp; Pop、Funk、Smooth Jazz、EDM、Ambient——
+        多様な音楽体験を一枚に織り上げる、氏家克典のシグネチャーワーク。
         高音質 USB メモリーで届ける、フィジカルなリスニング体験。
       </p>
       <div class="genres">
-        <span class="g">R&B</span>
+        <span class="g">R&amp;B</span>
         <span class="g">ROCK &amp; POP</span>
         <span class="g">FUNK</span>
         <span class="g">SMOOTH JAZZ</span>
         <span class="g">EDM</span>
         <span class="g">AMBIENT</span>
       </div>
-      <a href="#" class="btn">EXPLORE THE ALBUM</a>
+      <a href="#" class="btn">EXPLORE THE ALBUMS</a>
     </div>
   </div>
 </section>
